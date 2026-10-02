@@ -79,3 +79,15 @@ Pages that depend on the session render dynamically. Reference data (categories,
 - Never use the long dash character. Use a hyphen. `pnpm lint` enforces this (`scripts/check-dashes.mjs`).
 - Restrained radius (4 to 8 px), subtle borders, one brand color (`brand`), amber only for paid promotions.
 - Status is shown with a small dot and text (`StatusLabel`), not colored pills.
+
+## Product decisions and assumptions
+
+- **Moderation:** new listings go live immediately (`moderationMode = post`). Moderators act on reports, and super admins can switch to pre-moderation in `/admin/settings`. A listing that was rejected always goes back through review.
+- **Email verification:** required before the first login. Signing in without it sends a new link.
+- **Listing lifetime:** listings expire after 60 days (configurable). Owners renew them with one click. Expired listings are hidden at read time, and the daily cron marks them `EXPIRED`.
+- **Phone numbers:** shown after a click on "Покажи" (rate limited per IP) to make scraping harder. Emails are never shown.
+- **Dealers:** one dealer per user. Every member of a dealer can manage its listings; owners manage the dealer profile and team.
+- **Locations:** a listing references `region_id` and `city_id` directly instead of a separate location table. Every listing is in Bulgaria, so there is no country.
+- **Messaging:** messages update by polling every 8 seconds instead of WebSockets, which keeps it compatible with Vercel Functions. Dealer listings send messages to the member who created the listing.
+- **Seed photos:** seed listings use generated SVG illustrations (`/media/demo/*`), so the repository contains no third-party photos. Real listings use uploaded photos.
+- **Price drops:** cards show the previous price struck through only when the price went down. The listing page shows the full history as `old -> new`.

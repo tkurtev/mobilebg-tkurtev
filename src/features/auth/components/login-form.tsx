@@ -23,7 +23,7 @@ export function LoginForm({ next }: { next: string }) {
 
   const onSubmit = form.handleSubmit(async (values) => {
     setError(null);
-    const { error: signInError } = await authClient.signIn.email({ email: values.email, password: values.password, callbackURL: "/potvarzhdenie" });
+    const { error: signInError } = await authClient.signIn.email({ email: values.email, password: values.password });
     if (signInError) {
       setError({ message: authErrorMessage(signInError), unverified: signInError.code === "EMAIL_NOT_VERIFIED" });
       return;

@@ -80,7 +80,7 @@ test("seller creates, publishes, edits, reprices and sells a listing", async ({ 
     await expect(row.getByTestId("my-listing-price")).toContainText("16");
 
     await page.goto(listingPath);
-    await expect(page.getByText(/17\s900\s€ -> 16\s900\s€/).first()).toBeVisible();
+    await expect(page.getByRole("complementary", { name: "Цена и продавач" }).getByText(/17\s900\s€ -> 16\s900\s€/)).toBeVisible();
 
     await page.goto("/profil/obiavi?status=active");
     await row.getByRole("button", { name: "Още действия" }).click();

@@ -151,7 +151,7 @@ export default async function CategorySearchPage(props: PageProps<"/[category]">
               }
             />
           ) : (
-            <ol className="mt-3 space-y-2.5">
+            <ol className="mt-3 space-y-2.5" aria-label="Резултати">
               {result.items.map((item, index) => (
                 <li key={item.id}>
                   <ListingRow listing={item} priority={index < 2} favorite={{ authenticated: Boolean(user), active: favorited.has(item.id) }} />

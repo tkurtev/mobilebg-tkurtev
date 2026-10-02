@@ -1,3 +1,4 @@
+import { rmSync } from "node:fs";
 import { hashPassword } from "better-auth/crypto";
 import { eq, sql } from "drizzle-orm";
 import { ATTRIBUTE_SETS, getAttributeSet, type AttributeSet } from "@/config/attribute-sets";
@@ -684,8 +685,11 @@ async function main() {
   const listings = await seedListings(random, { categories, models, cities, users, dealers });
   await seedEngagement(random, listings, users);
   await seedSettings();
+  // Every id changes on reseed, so catalog data cached by an earlier build or dev server is stale.
+  rmSync(".next/cache/fetch-cache", { recursive: true, force: true });
   console.log(`Seeded ${listings.length} listings, ${users.length} users, ${dealers.length} dealers in ${((Date.now() - started) / 1000).toFixed(1)} s`);
   console.log(`Development accounts (password "${DEV_PASSWORD}"): superadmin@, admin@, moderator@, dealer@, user@mobited.local`);
+  console.log("Restart the app server if it is running.");
 }
 
 main()

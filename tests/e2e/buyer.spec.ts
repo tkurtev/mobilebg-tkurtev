@@ -6,7 +6,7 @@ test("buyer registers, logs in, searches, filters, saves a favorite and messages
 
   await test.step("register and verify email", async () => {
     await page.goto("/registratsiya");
-    await page.getByLabel("Име").fill("Петър Купувач");
+    await page.getByLabel("Име", { exact: true }).fill("Петър Купувач");
     await page.getByLabel("Имейл").fill(email);
     await page.getByLabel("Парола", { exact: true }).fill("Kupuvach2026");
     await page.getByLabel("Повтори паролата").fill("Kupuvach2026");
@@ -37,7 +37,7 @@ test("buyer registers, logs in, searches, filters, saves a favorite and messages
     await page.getByRole("searchbox", { name: "Търси обяви" }).press("Enter");
     await page.waitForURL(/\/avtomobili\?q=BMW/);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    const results = page.locator("main ol > li");
+    const results = page.getByRole("list", { name: "Резултати" }).getByRole("listitem");
     await expect(results.first()).toBeVisible();
 
     await page.getByRole("complementary", { name: "Филтри" }).getByRole("checkbox", { name: "Дизел" }).check();
@@ -48,20 +48,21 @@ test("buyer registers, logs in, searches, filters, saves a favorite and messages
 
   let listingTitle = "";
   await test.step("open a listing and add it to favorites", async () => {
-    const first = page.locator("main ol > li article h2 a").first();
+    const first = page.getByRole("list", { name: "Резултати" }).locator("article h2 a").first();
     listingTitle = (await first.textContent())?.trim() ?? "";
     await first.click();
     await expect(page.getByRole("heading", { level: 1, name: listingTitle })).toBeVisible();
-    await page.getByRole("button", { name: "Добави в любими" }).click();
-    await expect(page.getByRole("button", { name: "В любими" })).toHaveAttribute("aria-pressed", "true");
+    // Similar listing cards have icon-only favorite buttons; the listing's own button shows its label.
+    await page.getByRole("button", { name: "Добави в любими" }).filter({ hasText: "Добави в любими" }).click();
+    await expect(page.getByRole("button", { name: "В любими" }).filter({ hasText: "В любими" })).toHaveAttribute("aria-pressed", "true");
   });
 
   await test.step("message the seller", async () => {
     await page.getByRole("button", { name: "Изпрати съобщение" }).first().click();
-    await page.getByLabel("Съобщение").fill("Здравейте, автомобилът наличен ли е? Може ли оглед в събота?");
+    await page.getByRole("textbox", { name: "Съобщение" }).fill("Здравейте, автомобилът наличен ли е? Може ли оглед в събота?");
     await page.getByRole("button", { name: "Изпрати", exact: true }).click();
     await page.waitForURL(/\/suobshteniya\/[0-9a-f-]{36}/);
-    await expect(page.getByText("Може ли оглед в събота?")).toBeVisible();
+    await expect(page.getByTestId("message-bubble").filter({ hasText: "Може ли оглед в събота?" })).toBeVisible();
   });
 
   await test.step("favorite is listed in the account", async () => {

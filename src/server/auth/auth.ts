@@ -10,6 +10,16 @@ import { resetPasswordTemplate, verifyEmailTemplate } from "@/emails/templates";
 import { sendEmail } from "@/server/email";
 import { consumeRateLimit } from "@/server/rate-limit";
 
+const VERIFICATION_LANDING = "/potvarzhdenie";
+
+/** Sign-in sends verification links without a callback, so they land on the confirmation page too. */
+function withVerificationLanding(link: string): string {
+  const url = new URL(link);
+  const callback = url.searchParams.get("callbackURL");
+  if (!callback || callback === "/") url.searchParams.set("callbackURL", VERIFICATION_LANDING);
+  return url.toString();
+}
+
 function createAuth() {
   return betterAuth({
     appName: "MobiTed",
@@ -43,7 +53,7 @@ function createAuth() {
       autoSignInAfterVerification: true,
       expiresIn: 60 * 60 * 24,
       sendVerificationEmail: async ({ user, url }) => {
-        await sendEmail({ to: user.email, ...verifyEmailTemplate({ name: user.name, url }) });
+        await sendEmail({ to: user.email, ...verifyEmailTemplate({ name: user.name, url: withVerificationLanding(url) }) });
       },
     },
     session: {

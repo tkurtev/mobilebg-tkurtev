@@ -11,6 +11,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   agentRules: false,
+  // Loaded natively by Node so every route shares one module instance (Drizzle relies on instanceof checks).
+  serverExternalPackages: ["drizzle-orm", "postgres", "sharp"],
   experimental: {
     authInterrupts: true,
   },

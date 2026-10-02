@@ -5,7 +5,9 @@ import { Button } from "./button";
 import { Dialog, DialogContent, DialogTrigger } from "./dialog";
 
 type ConfirmDialogProps = {
-  trigger: ReactNode;
+  trigger?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   title: string;
   description?: string;
   confirmLabel: string;
@@ -15,16 +17,21 @@ type ConfirmDialogProps = {
 };
 
 /** Confirmation for destructive or irreversible actions. onConfirm returning false keeps the dialog open. */
-export function ConfirmDialog({ trigger, title, description, confirmLabel, tone = "danger", onConfirm, children }: ConfirmDialogProps) {
-  const [open, setOpen] = useState(false);
+export function ConfirmDialog({ trigger, open, onOpenChange, title, description, confirmLabel, tone = "danger", onConfirm, children }: ConfirmDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const isOpen = open ?? internalOpen;
+  const setOpen = (next: boolean) => {
+    if (open === undefined) setInternalOpen(next);
+    onOpenChange?.(next);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={setOpen}>
+      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
       <DialogContent
         title={title}
-        description={description}
+        description={children ? description : undefined}
         footer={
           <div className="flex justify-end gap-2">
             <Button variant="secondary" onClick={() => setOpen(false)} disabled={pending}>
@@ -33,6 +40,7 @@ export function ConfirmDialog({ trigger, title, description, confirmLabel, tone 
             <Button
               variant={tone === "danger" ? "danger" : "primary"}
               pending={pending}
+              data-testid="confirm-action"
               onClick={() =>
                 startTransition(async () => {
                   const result = await onConfirm();
@@ -45,7 +53,7 @@ export function ConfirmDialog({ trigger, title, description, confirmLabel, tone 
           </div>
         }
       >
-        {children ?? <p className="text-sm text-ink-2">{description}</p>}
+        {children ?? <p className="text-[15px] text-ink-2">{description}</p>}
       </DialogContent>
     </Dialog>
   );

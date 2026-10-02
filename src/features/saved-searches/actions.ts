@@ -88,9 +88,3 @@ export async function deleteSavedSearch(id: string): Promise<ActionResult> {
     revalidatePath("/profil/tarseniya");
   });
 }
-
-export async function markSavedSearchRun(id: string): Promise<void> {
-  const user = await requireActionUser().catch(() => null);
-  if (!user || !z.uuid().safeParse(id).success) return;
-  await db.update(savedSearches).set({ lastRunAt: new Date() }).where(and(eq(savedSearches.id, id), eq(savedSearches.userId, user.id)));
-}

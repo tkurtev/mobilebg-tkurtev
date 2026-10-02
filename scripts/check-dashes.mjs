@@ -2,7 +2,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { extname, join } from "node:path";
 
-const ROOTS = ["src", "docs", "tests", "scripts", "public", "README.md", "package.json", "next.config.ts", "drizzle.config.ts", "playwright.config.ts", "vitest.config.ts", "vercel.json", ".env.example", "docker-compose.yml"];
+const ROOTS = ["src", "docs", "tests", "scripts", "public", "README.md", "package.json", "next.config.ts", "drizzle.config.ts", "playwright.config.ts", "vitest.config.mts", "vercel.json", ".env.example", "docker-compose.yml"];
 const EXTENSIONS = new Set([".ts", ".tsx", ".mjs", ".js", ".json", ".md", ".css", ".sql", ".svg", ".yml", ".yaml", ".example", ""]);
 const FORBIDDEN = [String.fromCodePoint(0x2014), String.fromCodePoint(0x2013)];
 const problems = [];

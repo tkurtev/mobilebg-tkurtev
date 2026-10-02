@@ -17,9 +17,11 @@ export type CurrentUser = Actor & {
   dealer: { id: string; slug: string; name: string; memberRole: "OWNER" | "MEMBER" } | null;
 };
 
+export const getCurrentSession = cache(async () => getAuth().api.getSession({ headers: await headers() }));
+
 /** Session from Better Auth, then a fresh user row so role or status changes apply immediately. */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
-  const session = await getAuth().api.getSession({ headers: await headers() });
+  const session = await getCurrentSession();
   if (!session) return null;
 
   const [row] = await db

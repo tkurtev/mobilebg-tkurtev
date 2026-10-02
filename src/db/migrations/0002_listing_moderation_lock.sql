@@ -1,0 +1,1 @@
+ALTER TABLE "listings" ADD COLUMN "moderation_lock" boolean DEFAULT false NOT NULL;

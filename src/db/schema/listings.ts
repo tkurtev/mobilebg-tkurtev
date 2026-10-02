@@ -83,6 +83,8 @@ export const listings = pgTable(
     topUntil: timestamp({ withTimezone: true }),
     highlightUntil: timestamp({ withTimezone: true }),
     rejectionReason: text(),
+    /** Set when a moderator paused or rejected the listing; the owner cannot reactivate it. */
+    moderationLock: boolean().notNull().default(false),
     draftStep: smallint().notNull().default(1),
     searchDocument: text().notNull().default(""),
     searchVector: tsvector().generatedAlwaysAs(sql`to_tsvector('simple', search_document)`),

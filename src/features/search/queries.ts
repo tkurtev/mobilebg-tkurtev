@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lte, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, inArray, isNotNull, isNull, lte, sql, type SQL } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { SITE } from "@/config/site";
 import { db } from "@/db/client";
@@ -170,8 +170,10 @@ export async function searchListings(category: CategoryRecord, state: SearchStat
   return { items: await hydrateCards(rows), total, page, totalPages, refs };
 }
 
-export async function countListings(category: CategoryRecord, filters: SearchFilters): Promise<number> {
+export async function countListings(category: CategoryRecord, filters: SearchFilters, options: { publishedAfter?: Date } = {}): Promise<number> {
   const refs = await resolveRefs(category, filters);
-  const [row] = await db.select({ count: sql<number>`count(*)::int` }).from(listings).where(buildSearchConditions(category, filters, refs));
+  const where = buildSearchConditions(category, filters, refs);
+  const condition = options.publishedAfter ? and(where, gt(listings.publishedAt, options.publishedAfter)) : where;
+  const [row] = await db.select({ count: sql<number>`count(*)::int` }).from(listings).where(condition);
   return row?.count ?? 0;
 }

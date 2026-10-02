@@ -30,7 +30,7 @@ export async function runAction<T>(fn: () => Promise<T>): Promise<ActionResult<T
     if (error instanceof AppError) {
       return { ok: false, error: error.message, fieldErrors: error.fieldErrors };
     }
-    console.error("[action] unexpected error", error);
+    console.error("[action] unexpected error", error instanceof Error ? error.stack : error);
     return { ok: false, error: "Възникна грешка. Опитай отново." };
   }
 }

@@ -12,7 +12,7 @@ MobiTed runs on Vercel as a standard Next.js project. It needs a PostgreSQL data
 
 Use any Vercel-compatible provider, for example **Neon** (Vercel Marketplace -> Neon) or Supabase.
 
-1. Create a database in the EU region closest to your Vercel functions (for example Frankfurt).
+1. Create the database in Frankfurt (`aws-eu-central-1` on Neon). `vercel.json` pins functions to `fra1` (Frankfurt), so queries stay in one region.
 2. Copy the **pooled** connection string. The client uses `prepare: false`, so transaction-mode poolers (Neon pooler, Supabase Supavisor) work.
 3. In the Vercel project add `DATABASE_URL` for Production and Preview. With the Neon integration it is added automatically.
 

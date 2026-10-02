@@ -21,7 +21,7 @@ export async function AccountShell({ user, children }: { user: CurrentUser; chil
 
   return (
     <div className="container-page py-4 lg:py-6">
-      <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
         <aside className="min-w-0">
           <p className="mb-2 hidden truncate px-3 text-sm text-muted lg:block">{user.name}</p>
           <AccountNav items={items} />

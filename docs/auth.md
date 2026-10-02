@@ -21,6 +21,8 @@ The extra user fields `role` and `status` are declared with `input: false`, so t
 
 Emails go through `src/server/email`. They use Resend when `RESEND_API_KEY` is set. Otherwise they are logged and, outside production, saved to the development mailbox at `/dev/poshta`.
 
+`MOBITED_SKIP_EMAIL_VERIFICATION=1` is for deployments without an email provider yet. Verification is not required or sent, and `databaseHooks.user.create.before` stores new accounts as verified, so features that check `emailVerified` (messages, dealer registration) work for them. Those accounts stay verified after the flag is removed.
+
 ## Authorization
 
 Every rule lives on the server. `src/server/auth/session.ts` loads the session and a fresh user row on each request, so role and suspension changes apply immediately. It provides:

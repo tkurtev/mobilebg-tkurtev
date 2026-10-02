@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Alert } from "@/components/ui/alert";
@@ -13,6 +14,7 @@ import { authErrorMessage } from "../error-messages";
 import { ResendVerification } from "./resend-verification";
 
 export function RegisterForm({ devMailbox }: { devMailbox: boolean }) {
+  const router = useRouter();
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const form = useForm<RegisterInput>({
@@ -43,7 +45,7 @@ export function RegisterForm({ devMailbox }: { devMailbox: boolean }) {
 
   const onSubmit = form.handleSubmit(async (values) => {
     setError(null);
-    const { error: signUpError } = await authClient.signUp.email({
+    const { data, error: signUpError } = await authClient.signUp.email({
       name: values.name.trim(),
       email: values.email,
       password: values.password,
@@ -51,6 +53,12 @@ export function RegisterForm({ devMailbox }: { devMailbox: boolean }) {
     });
     if (signUpError) {
       setError(authErrorMessage(signUpError));
+      return;
+    }
+    // Without required verification the account is signed in right away.
+    if (data?.token) {
+      router.push("/profil");
+      router.refresh();
       return;
     }
     setSentTo(values.email);

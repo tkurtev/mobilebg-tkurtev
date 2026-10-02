@@ -12,6 +12,7 @@ const serverEnvSchema = z.object({
   MOBITED_DEV_MAILBOX: z.enum(["0", "1"]).optional(),
   MOBITED_LOCAL_UPLOADS: z.enum(["0", "1"]).optional(),
   MOBITED_DISABLE_RATE_LIMIT: z.enum(["0", "1"]).optional(),
+  MOBITED_SKIP_EMAIL_VERIFICATION: z.enum(["0", "1"]).optional(),
   VERCEL_ENV: z.string().optional(),
   VERCEL_URL: z.string().optional(),
   VERCEL_BRANCH_URL: z.string().optional(),
@@ -39,6 +40,14 @@ export function env(): ServerEnv {
 
 export function isProduction(): boolean {
   return env().NODE_ENV === "production";
+}
+
+/**
+ * For deployments without an email provider yet: new accounts are created as verified and
+ * can sign in right away. Accounts created this way stay verified after the flag is removed.
+ */
+export function emailVerificationSkipped(): boolean {
+  return env().MOBITED_SKIP_EMAIL_VERIFICATION === "1";
 }
 
 export function appUrl(): string {

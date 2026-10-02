@@ -29,8 +29,9 @@ Use any Vercel-compatible provider, for example **Neon** (Vercel Marketplace -> 
 | `CRON_SECRET` | another random string (recommended; protects the daily maintenance job) |
 | `APP_URL` | your production URL, for example `https://mobited.bg` (optional; derived from the Vercel URL otherwise) |
 | `RESEND_API_KEY`, `EMAIL_FROM` | for real email delivery |
+| `MOBITED_SKIP_EMAIL_VERIFICATION` | `1` until an email provider is configured (optional) |
 
-Without `RESEND_API_KEY`, verification and password reset emails are only written to the function logs. Set it before inviting real users.
+Without `RESEND_API_KEY`, verification and password reset emails are only written to the function logs, so nobody can confirm a new account. Until you add a provider, set `MOBITED_SKIP_EMAIL_VERIFICATION=1`: new accounts are created as verified and sign in right away. Anyone can then register with an address they do not own, and accounts created this way stay verified after you remove the flag. Password reset still needs an email provider.
 
 ## 5. Database setup on every deploy
 

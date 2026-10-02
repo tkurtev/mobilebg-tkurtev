@@ -69,6 +69,7 @@ If `BLOB_READ_WRITE_TOKEN` is not set, development uploads are saved to `./.uplo
 | `APP_URL` | no | Public base URL. On Vercel it is taken from the deployment URL. |
 | `RESEND_API_KEY`, `EMAIL_FROM` | no | Email delivery. Without them, emails are logged and stored in the dev mailbox. |
 | `CRON_SECRET` | recommended in production | Protects `/api/cron/maintenance` |
+| `MOBITED_SKIP_EMAIL_VERIFICATION` | no | `1` turns off email verification while no email provider is configured. New accounts are created as verified. |
 
 Payments need no environment variables.
 

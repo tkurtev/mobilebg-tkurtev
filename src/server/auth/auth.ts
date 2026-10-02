@@ -3,7 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { eq } from "drizzle-orm";
-import { appUrl, authSecret, rateLimitDisabled, trustedOrigins } from "@/config/env";
+import { appUrl, authSecret, emailVerificationSkipped, rateLimitDisabled, trustedOrigins } from "@/config/env";
 import { db } from "@/db/client";
 import { accounts, profiles, sessions, users, verificationTokens } from "@/db/schema";
 import { resetPasswordTemplate, verifyEmailTemplate } from "@/emails/templates";
@@ -21,6 +21,7 @@ function withVerificationLanding(link: string): string {
 }
 
 function createAuth() {
+  const skipVerification = emailVerificationSkipped();
   return betterAuth({
     appName: "MobiTed",
     baseURL: appUrl(),
@@ -38,7 +39,7 @@ function createAuth() {
     },
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: true,
+      requireEmailVerification: !skipVerification,
       minPasswordLength: 8,
       maxPasswordLength: 128,
       revokeSessionsOnPasswordReset: true,
@@ -48,8 +49,8 @@ function createAuth() {
       },
     },
     emailVerification: {
-      sendOnSignUp: true,
-      sendOnSignIn: true,
+      sendOnSignUp: !skipVerification,
+      sendOnSignIn: !skipVerification,
       autoSignInAfterVerification: true,
       expiresIn: 60 * 60 * 24,
       sendVerificationEmail: async ({ user, url }) => {
@@ -83,6 +84,7 @@ function createAuth() {
     databaseHooks: {
       user: {
         create: {
+          before: async (user) => (skipVerification ? { data: { ...user, emailVerified: true } } : undefined),
           after: async (user) => {
             await db.insert(profiles).values({ userId: user.id }).onConflictDoNothing();
           },

@@ -6,7 +6,7 @@ MobiTed runs on Vercel as a standard Next.js project. It needs a PostgreSQL data
 
 1. Push the repository to GitHub.
 2. In Vercel choose **Add New... -> Project** and import the repository.
-3. Framework preset: **Next.js**. Keep the default build command (`pnpm build`) and install command (`pnpm install`). Node.js 22.x is recommended.
+3. Framework preset: **Next.js**. Keep the install command (`pnpm install`). Node.js 22.x is recommended. `vercel.json` sets the build command to `pnpm db:setup && pnpm build` (see step 5).
 
 ## 2. Configure PostgreSQL
 
@@ -32,15 +32,21 @@ Use any Vercel-compatible provider, for example **Neon** (Vercel Marketplace -> 
 
 Without `RESEND_API_KEY`, verification and password reset emails are only written to the function logs. Set it before inviting real users.
 
-## 5. Run production migrations
+## 5. Database setup on every deploy
 
-Run the migrations against the production database from your machine or from CI:
+The build command runs `pnpm db:setup` before `next build`. It:
+
+- applies pending migrations (using `DATABASE_URL_UNPOOLED` when Neon provides it, otherwise `DATABASE_URL`);
+- fills the reference tables when they are empty: regions and cities, the 12 categories, makes, models and generations;
+- adds settings that do not exist yet.
+
+It never changes users, listings or anything an admin already edited, so it is safe on every deploy. A concurrent build waits for the other one through an advisory lock. You can also run it by hand:
 
 ```bash
-DATABASE_URL="<production pooled or direct url>" pnpm db:migrate
+DATABASE_URL="<production url>" pnpm db:setup
 ```
 
-You can also run migrations on every deploy by changing the Vercel build command to `pnpm db:migrate && pnpm build`. Do not run `pnpm db:seed` in production. It replaces all data and refuses to run when `NODE_ENV=production`.
+Do not run `pnpm db:seed` in production. It deletes all data, creates development accounts with a known password and refuses to run when `NODE_ENV=production`.
 
 To create the first super admin, register normally, then run:
 

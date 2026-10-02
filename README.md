@@ -84,6 +84,7 @@ Payments need no environment variables.
 | `pnpm test:e2e` | Playwright end-to-end tests. Builds the app and uses a freshly seeded `mobited_e2e` database. |
 | `pnpm db:generate` | Generate a migration after changing `src/db/schema` |
 | `pnpm db:migrate` | Apply migrations |
+| `pnpm db:setup` | Apply migrations and fill empty reference tables (regions, categories, makes). Production-safe; Vercel runs it on every build. |
 | `pnpm db:seed` | Replace all data with the demo dataset. Refuses to run with `NODE_ENV=production`. |
 | `pnpm db:reset` | Drop all tables, then migrate and seed |
 | `pnpm db:studio` | Drizzle Studio |

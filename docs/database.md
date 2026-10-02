@@ -7,7 +7,8 @@ PostgreSQL 16 with Drizzle ORM. The schema is defined in `src/db/schema/*.ts` an
 ```bash
 # change src/db/schema/*.ts, then
 pnpm db:generate     # writes a new SQL migration
-pnpm db:migrate      # applies pending migrations (also used in production)
+pnpm db:migrate      # applies pending migrations
+pnpm db:setup        # migrations plus reference data for empty tables (used by Vercel builds)
 pnpm db:seed         # development data (refuses to run with NODE_ENV=production)
 ```
 

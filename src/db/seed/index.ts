@@ -2,7 +2,6 @@ import { rmSync } from "node:fs";
 import { hashPassword } from "better-auth/crypto";
 import { eq, sql } from "drizzle-orm";
 import { ATTRIBUTE_SETS, getAttributeSet, type AttributeSet } from "@/config/attribute-sets";
-import { DEFAULT_CATEGORIES } from "@/config/categories";
 import { FEATURES } from "@/config/features";
 import { BODY_TYPE_OPTIONS, COLOR_OPTIONS, optionLabel } from "@/config/options";
 import { PROMOTION_PRODUCTS } from "@/config/promotions";
@@ -13,10 +12,10 @@ import { buildListingSlug } from "@/features/listings/paths";
 import { buildSearchDocument } from "@/features/listings/search-document";
 import { demoImageFile, demoShapeFor } from "@/features/media/demo-images";
 import { slugify } from "@/lib/slug";
-import { BULGARIAN_REGIONS } from "./data/locations";
 import { DEALERS, FEMALE_FIRST_NAMES, LISTING_DESCRIPTION_SENTENCES, MALE_FIRST_NAMES, MALE_LAST_NAMES, femaleLastName } from "./data/people";
-import { MAKES, type EngineSeed, type ModelSeed } from "./data/taxonomy";
+import { type EngineSeed } from "./data/taxonomy";
 import { chunk, createRandom, type Random } from "./random";
+import { insertCategories, insertLocations, insertMissingSettings, insertTaxonomy, type InsertedModel } from "./reference";
 
 /** Development-only credentials. Never use these accounts in production. */
 export const DEV_PASSWORD = "MobiTed123!";
@@ -43,7 +42,7 @@ const CATEGORY_SHARE: Record<string, number> = {
 
 type Ids = { id: string };
 type CityRow = { id: string; name: string; regionId: string; regionName: string; weight: number };
-type ModelRow = { id: string; makeId: string; makeName: string; name: string; vehicleType: string; seed: ModelSeed; generations: { id: string; name: string; yearFrom: number; yearTo: number | null }[] };
+type ModelRow = InsertedModel;
 type UserRow = { id: string; name: string; phone: string };
 type DealerRow = { id: string; name: string; phone: string; cityId: string; focus: readonly string[]; ownerId: string };
 
@@ -62,60 +61,11 @@ async function truncateAll() {
   if (names) await db.execute(sql.raw(`TRUNCATE ${names} RESTART IDENTITY CASCADE`));
 }
 
+const CITY_WEIGHTS: Record<string, number> = { София: 30, Пловдив: 12, Варна: 11, Бургас: 9, Русе: 5, "Стара Загора": 5, Плевен: 4 };
+
 async function seedLocations(): Promise<CityRow[]> {
-  const result: CityRow[] = [];
-  for (const [index, region] of BULGARIAN_REGIONS.entries()) {
-    const [inserted] = await db.insert(s.regions).values({ name: region.name, slug: region.slug, sortOrder: index }).returning({ id: s.regions.id });
-    if (!inserted) throw new Error("region insert failed");
-    const rows = await db
-      .insert(s.cities)
-      .values(
-        region.cities.map((name, cityIndex) => ({
-          regionId: inserted.id,
-          name,
-          slug: slugify(name),
-          isRegionCenter: cityIndex === 0 && region.centerIsFirst !== false,
-          sortOrder: cityIndex,
-        })),
-      )
-      .returning({ id: s.cities.id, name: s.cities.name, isRegionCenter: s.cities.isRegionCenter });
-    for (const row of rows) {
-      const big = { София: 30, Пловдив: 12, Варна: 11, Бургас: 9, Русе: 5, "Стара Загора": 5, Плевен: 4 } as Record<string, number>;
-      result.push({ id: row.id, name: row.name, regionId: inserted.id, regionName: region.name, weight: big[row.name] ?? (row.isRegionCenter ? 2 : 0.6) });
-    }
-  }
-  return result;
-}
-
-async function seedCategories() {
-  const rows = await db
-    .insert(s.categories)
-    .values(DEFAULT_CATEGORIES.map((category, index) => ({ ...category, sortOrder: index })))
-    .returning({ id: s.categories.id, slug: s.categories.slug, name: s.categories.name, attributeSet: s.categories.attributeSet, vehicleType: s.categories.vehicleType });
-  return rows;
-}
-
-async function seedTaxonomy(): Promise<ModelRow[]> {
-  const models: ModelRow[] = [];
-  for (const make of MAKES) {
-    const [makeRow] = await db.insert(s.vehicleMakes).values({ name: make.name, slug: slugify(make.name) }).returning({ id: s.vehicleMakes.id });
-    if (!makeRow) throw new Error("make insert failed");
-    for (const modelSeed of make.models) {
-      const [modelRow] = await db
-        .insert(s.vehicleModels)
-        .values({ makeId: makeRow.id, name: modelSeed.name, slug: slugify(modelSeed.name), vehicleType: modelSeed.type })
-        .returning({ id: s.vehicleModels.id });
-      if (!modelRow) throw new Error("model insert failed");
-      const generations = modelSeed.generations?.length
-        ? await db
-            .insert(s.vehicleGenerations)
-            .values(modelSeed.generations.map(([name, yearFrom, yearTo]) => ({ modelId: modelRow.id, name, slug: slugify(name), yearFrom, yearTo })))
-            .returning({ id: s.vehicleGenerations.id, name: s.vehicleGenerations.name, yearFrom: s.vehicleGenerations.yearFrom, yearTo: s.vehicleGenerations.yearTo })
-        : [];
-      models.push({ id: modelRow.id, makeId: makeRow.id, makeName: make.name, name: modelSeed.name, vehicleType: modelSeed.type, seed: modelSeed, generations });
-    }
-  }
-  return models;
+  const cities = await insertLocations();
+  return cities.map((city) => ({ ...city, weight: CITY_WEIGHTS[city.name] ?? (city.isRegionCenter ? 2 : 0.6) }));
 }
 
 function randomPhone(random: Random): string {
@@ -425,7 +375,7 @@ function buildPartListing(random: Random, model: ModelRow): Omit<ListingDraft, "
 async function seedListings(
   random: Random,
   context: {
-    categories: Awaited<ReturnType<typeof seedCategories>>;
+    categories: Awaited<ReturnType<typeof insertCategories>>;
     models: ModelRow[];
     cities: CityRow[];
     users: (UserRow & { email: string; role: string })[];
@@ -668,23 +618,19 @@ async function seedEngagement(
   ]);
 }
 
-async function seedSettings() {
-  await db.insert(s.appSettings).values(Object.entries(DEFAULT_SETTINGS).map(([key, value]) => ({ key, value })));
-}
-
 async function main() {
   assertSafeEnvironment();
   const started = Date.now();
   const random = createRandom(20261002);
   await truncateAll();
   const cities = await seedLocations();
-  const categories = await seedCategories();
-  const models = await seedTaxonomy();
+  const categories = await insertCategories();
+  const models = await insertTaxonomy();
   const users = await seedUsers(random, cities);
   const dealers = await seedDealers(random, cities, users);
   const listings = await seedListings(random, { categories, models, cities, users, dealers });
   await seedEngagement(random, listings, users);
-  await seedSettings();
+  await insertMissingSettings();
   // Every id changes on reseed, so catalog data cached by an earlier build or dev server is stale.
   rmSync(".next/cache/fetch-cache", { recursive: true, force: true });
   console.log(`Seeded ${listings.length} listings, ${users.length} users, ${dealers.length} dealers in ${((Date.now() - started) / 1000).toFixed(1)} s`);

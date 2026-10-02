@@ -39,6 +39,7 @@ export const RATE_LIMITS = {
   savedSearchCreate: { window: 3600, max: 30 },
   checkout: { window: 3600, max: 20 },
   dealerMemberAdd: { window: 3600, max: 20 },
+  messagePoll: { window: 60, max: 30 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export async function enforceRateLimit(name: keyof typeof RATE_LIMITS, subject: string): Promise<void> {

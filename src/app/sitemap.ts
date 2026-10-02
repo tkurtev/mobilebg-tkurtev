@@ -6,7 +6,7 @@ import { categories, dealers, listings } from "@/db/schema";
 import { listingPath } from "@/features/listings/paths";
 import { publicListingCondition } from "@/features/listings/queries";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = appUrl();

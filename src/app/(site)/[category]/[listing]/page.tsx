@@ -43,10 +43,11 @@ async function load(props: PageProps<"/[category]/[listing]">) {
 export async function generateMetadata(props: PageProps<"/[category]/[listing]">): Promise<Metadata> {
   const loaded = await load(props);
   if (!loaded) return {};
-  const { listing, category } = loaded.detail;
+  const { listing, category, makeName, modelName } = loaded.detail;
   if (!isPubliclyVisible(listing) && listing.status !== "SOLD") return { title: "Обява", robots: { index: false } };
   const price = listing.priceCents !== null ? formatPrice(listing.priceCents) : "по договаряне";
-  const title = [listing.title, listing.year].filter(Boolean).join(" ");
+  const vehicle = makeName && modelName && category.attributeSet !== "parts" ? `${makeName} ${modelName}` : listing.title;
+  const title = [vehicle, listing.year].filter(Boolean).join(" ");
   const path = listingPath({ categorySlug: category.slug, number: listing.number, slug: listing.slug });
   return {
     title: { absolute: `${title} - ${price} | MobiTed` },

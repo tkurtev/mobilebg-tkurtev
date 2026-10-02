@@ -18,7 +18,7 @@ export function DescriptionStep({ issues }: { issues: Issues }) {
         error={issues.description}
         hint={`${length} / 5000 символа. Опиши състояние, обслужване, забележки и какво е включено в цената.`}
       >
-        <Textarea id="description" rows={10} maxLength={5000} aria-invalid={Boolean(issues.description)} {...form.register("description")} />
+        <Textarea id="description" rows={10} maxLength={5000} aria-invalid={Boolean(issues.description)} {...form.register("description")} defaultValue={form.getValues("description") ?? ""} />
       </EditorField>
     </StepSection>
   );

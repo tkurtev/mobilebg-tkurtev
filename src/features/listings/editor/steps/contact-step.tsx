@@ -15,10 +15,10 @@ export function ContactStep({ issues, isDealer }: { issues: Issues; isDealer: bo
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <EditorField id="contactName" label={isDealer ? "Лице за контакт" : "Име"} required error={issues.contactName}>
-          <Input id="contactName" autoComplete="name" maxLength={80} aria-invalid={Boolean(issues.contactName)} {...form.register("contactName")} />
+          <Input id="contactName" autoComplete="name" maxLength={80} aria-invalid={Boolean(issues.contactName)} {...form.register("contactName")} defaultValue={form.getValues("contactName") ?? ""} />
         </EditorField>
         <EditorField id="contactPhone" label="Телефон" required error={issues.contactPhone} hint="Например 0888 123 456 или +359 888 123 456">
-          <Input id="contactPhone" type="tel" inputMode="tel" autoComplete="tel" aria-invalid={Boolean(issues.contactPhone)} {...form.register("contactPhone")} />
+          <Input id="contactPhone" type="tel" inputMode="tel" autoComplete="tel" aria-invalid={Boolean(issues.contactPhone)} {...form.register("contactPhone")} defaultValue={form.getValues("contactPhone") ?? ""} />
         </EditorField>
       </div>
     </StepSection>

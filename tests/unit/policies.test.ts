@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { can, canAssignRole, canManageDealer, canManageListing, canSuspendUser, canViewListing, isPubliclyVisible, type Actor } from "@/server/auth/policies";
 
-const actor = (role: Actor["role"], id = role, dealerId: string | null = null): Actor => ({ id, role, dealerId });
+const actor = (role: Actor["role"], id: string = role, dealerId: string | null = null): Actor => ({ id, role, dealerId });
 const future = new Date(Date.now() + 86_400_000);
 const past = new Date(Date.now() - 86_400_000);
 

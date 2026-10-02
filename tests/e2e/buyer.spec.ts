@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { DEV_PASSWORD, login, logout, uniqueEmail } from "./helpers";
+import { DEV_PASSWORD, logout, uniqueEmail } from "./helpers";
 
 test("buyer registers, logs in, searches, filters, saves a favorite and messages the seller", async ({ page }) => {
   const email = uniqueEmail("buyer");

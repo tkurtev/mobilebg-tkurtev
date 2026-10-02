@@ -108,7 +108,7 @@ export function VehicleStep({ set, makes, models, generations, issues }: Vehicle
         error={issues.title}
         hint={hasTaxonomy ? "Например: BMW 3 Series 320d xDrive M Sport" : "Например: 4 бр. зимни гуми Michelin 205/55 R16"}
       >
-        <Input id="title" maxLength={120} aria-invalid={Boolean(issues.title)} {...form.register("title")} />
+        <Input id="title" maxLength={120} aria-invalid={Boolean(issues.title)} {...form.register("title")} defaultValue={form.getValues("title") ?? ""} />
       </EditorField>
     </StepSection>
   );

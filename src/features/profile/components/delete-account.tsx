@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -7,6 +8,7 @@ import { Field, Input } from "@/components/ui/field";
 import { deleteAccountAction } from "../actions";
 
 export function DeleteAccount({ email }: { email: string }) {
+  const router = useRouter();
   const [confirmEmail, setConfirmEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +23,8 @@ export function DeleteAccount({ email }: { email: string }) {
           setError(result.fieldErrors?.confirmEmail ?? result.error);
           return false;
         }
-        window.location.assign("/");
+        router.push("/");
+        router.refresh();
         return true;
       }}
     >

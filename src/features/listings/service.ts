@@ -32,6 +32,7 @@ import { enforceRateLimit } from "@/server/rate-limit";
 import { getSettings } from "@/server/settings";
 import { deleteStoredFiles, type StoredImage } from "@/server/storage";
 import { listingIssues, type ListingValues, type StepKey } from "./editor";
+import { MODERATION_TARGET, type ModerationAction } from "./moderation-rules";
 import { buildListingSlug, listingPath } from "./paths";
 import { buildSearchDocument } from "./search-document";
 
@@ -350,16 +351,6 @@ export async function changeStatusAsOwner(actor: Actor, listingId: string, actio
   return patch.status as ListingStatus;
 }
 
-export type ModerationAction = "approve" | "reject" | "pause" | "restore" | "archive";
-
-const MODERATION_TARGET: Record<ModerationAction, { from: ListingStatus[]; to: ListingStatus }> = {
-  approve: { from: ["PENDING"], to: "ACTIVE" },
-  reject: { from: ["PENDING", "ACTIVE", "PAUSED"], to: "REJECTED" },
-  pause: { from: ["ACTIVE"], to: "PAUSED" },
-  restore: { from: ["PAUSED", "REJECTED", "ARCHIVED", "EXPIRED"], to: "ACTIVE" },
-  archive: { from: ["DRAFT", "PENDING", "ACTIVE", "REJECTED", "PAUSED", "SOLD", "EXPIRED"], to: "ARCHIVED" },
-};
-
 const MODERATION_ENUM: Record<ModerationAction, (typeof moderationActions.$inferInsert)["action"]> = {
   approve: "APPROVE",
   reject: "REJECT",
@@ -531,3 +522,5 @@ export async function loadOwnedListing(actor: Actor, listingId: string) {
   const category = await categoryOf(listing.categoryId);
   return { listing, category };
 }
+
+export type { ModerationAction };

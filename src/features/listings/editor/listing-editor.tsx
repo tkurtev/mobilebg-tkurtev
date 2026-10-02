@@ -4,7 +4,7 @@ import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { getAttributeSet } from "@/config/attribute-sets";
 import { LISTING_STATUS_LABELS, type ListingStatus } from "@/config/listing-status";
 import { Alert } from "@/components/ui/alert";
@@ -76,8 +76,8 @@ export function ListingEditor(props: EditorProps) {
   const autosaveTimer = useRef<number | undefined>(undefined);
 
   const stepIndex = Math.max(0, steps.findIndex((entry) => entry.key === step));
-  const makeId = form.watch("makeId") ?? null;
-  const modelId = form.watch("modelId") ?? null;
+  const makeId = useWatch({ control: form.control, name: "makeId" }) ?? null;
+  const modelId = useWatch({ control: form.control, name: "modelId" }) ?? null;
 
   useEffect(() => {
     if (!makeId || !category.vehicleType || taxonomy.makeId === makeId) return;
@@ -126,17 +126,19 @@ export function ListingEditor(props: EditorProps) {
     [form, category.attributeSet, listing.id],
   );
 
+  const watchedValues = useWatch({ control: form.control });
+  const serializedValues = JSON.stringify(watchedValues);
+  const lastAutosaved = useRef(serializedValues);
+
   useEffect(() => {
-    if (!isDraft) return;
-    const subscription = form.watch(() => {
-      window.clearTimeout(autosaveTimer.current);
-      autosaveTimer.current = window.setTimeout(() => void save(step, false), 1200);
-    });
-    return () => {
-      subscription.unsubscribe();
-      window.clearTimeout(autosaveTimer.current);
-    };
-  }, [form, isDraft, save, step]);
+    if (!isDraft || serializedValues === lastAutosaved.current) return;
+    window.clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = window.setTimeout(() => {
+      lastAutosaved.current = serializedValues;
+      void save(step, false);
+    }, 1200);
+    return () => window.clearTimeout(autosaveTimer.current);
+  }, [serializedValues, isDraft, save, step]);
 
   useEffect(() => {
     if (isDraft) return;

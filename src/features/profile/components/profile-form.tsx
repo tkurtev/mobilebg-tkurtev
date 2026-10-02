@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/field";
@@ -16,7 +16,8 @@ export function ProfileForm({ defaults, email, regions, cities }: { defaults: Pr
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
   const form = useForm<ProfileInput>({ resolver: zodResolver(profileSchema), defaultValues: defaults });
   const { errors, isSubmitting } = form.formState;
-  const regionId = form.watch("regionId");
+  const regionId = useWatch({ control: form.control, name: "regionId" });
+  const cityId = useWatch({ control: form.control, name: "cityId" });
 
   return (
     <form
@@ -64,7 +65,7 @@ export function ProfileForm({ defaults, email, regions, cities }: { defaults: Pr
             </Select>
           </Field>
           <Field label="Град" htmlFor="profile-city" error={errors.cityId?.message}>
-            <Select id="profile-city" value={form.watch("cityId") ?? ""} disabled={!regionId} onChange={(event) => form.setValue("cityId", event.target.value || null)}>
+            <Select id="profile-city" value={cityId ?? ""} disabled={!regionId} onChange={(event) => form.setValue("cityId", event.target.value || null)}>
               <option value="">Избери</option>
               {cities
                 .filter((city) => city.regionId === regionId)
